@@ -1,0 +1,258 @@
+sfPaymentPaybox2Plugin
+======================
+
+**WARNING : This plugin is in alpha state, therefore NOT READY for production.
+It still needs contribution to be fully functional.** 
+
+This plugin is part of the sfPayment plugins suite and brings the following Paybox products support:
+
+ * __Paybox System__ product:
+The Paybox System product is a secure system for the management of payment by banker's card and by private
+cards on Internet retail sites. The CGI module simply needs to be installed and called up from the page of 
+the retailer's e-commerce site which precedes the Paybox System payment page. Once the product has been 
+integrated into the e-commerce site, the customers can make payments in complete safety. When the order 
+has been placed, they will be redirected to the PAYBOX SERVICES server, which will set up an encrypted 
+connexion with the purchaser (in SSL 128 bits, so that the input of the banker's card number is carried 
+out in complete security) and displays a payment page.
+ 
+ * __Paybox Direct__ product:
+The product Paybox Direct PPPS (Paiement Paybox Par Socket in french) enables you to send a transaction to 
+PAYBOX SERVICES via a "question" frame, and to obtain in return a "réponse" (reply) frame, which informs 
+you of the acceptation or refusal of the request. The principal of PPPS is therefore to:
+   * Create a "question" frame, 
+   * Call a present URL on the servers of PAYBOX SERVICES, 
+   * Recover the response frame, returned by PAYBOX SERVICES after processing the transaction. 
+
+Please visit the [Paybox website](http://www.paybox.com "Paybox") and the 
+[official plugin page](http://wiki.github.com/letscod/sfPaymentPlugin "sfPaymentPlugin on github") of the 
+sfPayment project for more information.
+
+**Note** : This plugin REQUIRES the 
+[sfPaymentPlugin](http://www.symfony-project.org/plugins/sfPaymentPlugin "sfPaymentPlugin : standard, flexible and maintainable solution for managing online payments") 
+and the 
+[sfWebBrowserPlugin](http://www.symfony-project.org/plugins/sfWebBrowserPlugin "The sfWebBrowserPlugin proposes an HTTP client capable of making web requests.").
+
+Installation
+------------
+
+  * Install the plugin
+
+        $ symfony plugin:install sfPaymentPaybox2Plugin --stability=alpha --install_deps
+
+  * Clear you cache
+
+        $ symfony cc
+        
+  * Install the cgi module: (__Paybox System__ product)
+  
+  The CGI module, provided by PAYBOX SERVICES, is available in sfPaymentPaybox2Plugin/cgi-modules/
+  
+  If you didn't find your operating system version please visit the [Paybox downloads page](http://www1.paybox.com/telechargements.aspx "Paybox downlaods") (Modules PAYBOX SYSTEM)
+  
+  The module is available for the following operating systems:
+  
+    * Windows NT, 9x, 2000, XP
+    * Unix SCO (Intel)
+    * Sun Solaris
+    * Linux (Intel)
+    * Free BSD
+    * Mac OS X
+    * Aix (IBM).
+  
+  This module should then be installed in the "cgi-bin" directory of your Web server (this directory can be renamed). 
+  
+  The module as to be renamed "modulev2.cgi" for reasons of compatibility, however, the module must not be renamed "module.cgi"
+
+  
+Configuring your plugin
+-----------------------
+  * Enable the module in your application `settings.yml`
+
+        # Activated modules from plugins or from the symfony core
+        enabled_modules:        [default, sfPaymentPaybox]
+
+  * Configure the plugin in your application `app.yml`
+
+        all:
+          #sfPaymentPaybox2Plugin
+          sf_payment_paybox_plugin: 
+            identifier: paybox_identifier         #Paybox identifier, supplied by PAYBOX SERVICES at the time of registration.
+            site: my_site_number                  #Site number (TPE) given by the bank
+            rank: rank_number                     #Rank number given by the bank
+            password: password                    #password provided by Paybox (Paybox Direct)
+            language: "GBR"                       #language (GBR English, FRA French, ESP Spanish, ITA Italian, DEU German, NLD Dutch, SWE Swedish)
+            return: "amount:M;reference:R;authorization:A;transaction:T;subsription_number:B;payment_type:P;card_type:C;error:E;payment_status:G;authenticate_status:F" #variables sent by Paybox
+            intermediary_page:                    #intermediary page is the page between your site and the paybox payment page (Paybox System)
+              wait: 0                             #delay in displaying the intermediary page, value in milliseconds
+              txt: "<center><b>You are being sent to a Paybox secure payment page</b><br>Once payment has been made, you will receive an e-mail containing your purchase receipt.<br><i>Please wait a few seconds…</i><br></center>" #text able to be displayed on the intermediary page instead of the default text
+              background: "#FFFFFF"               #screen background of the intermediary page
+              button: "nul"                       #name given to the button of the intermediary page "nul" for the removal of this button
+            test:
+              identifier: test_paybox_identifier  #Test PAYBOX identifier, supplied by PAYBOX SERVICES at the time of registration.
+              site: test_my_site_number           #Test Site number (TPE) given by the bank
+              rank: test_rank_number              #Test Rank number given by the bank
+              password: password                  #Test password provided by Paybox (Paybox Direct)
+
+  * __Optional__: Routing rules
+        
+  You can add some of your own to make the URLs look nicer. 
+  
+  Optionally add the following routing rules to routing.yml:
+  
+        paybox_payment: 
+          url: /payment
+          param: { module: sfPaymentPaybox, action: pay }
+  
+        paybox_cancel_payment: 
+          url: /payment_cancelled
+          param: { module: sfPaymentPaybox, action: cancel }
+  
+        paybox_complete_payment: 
+          url: /payment_completed
+          param: { module: sfPaymentPaybox, action: completed }
+          
+        paybox_fail_payment: 
+          url: /payment_failed
+          param: { module: sfPaymentPaybox, action: fail }
+
+Customize sfPaymentPaybox module templates
+------------------------------------------
+
+sfPaymentPaybox module 
+
+  * cancelSuccess.php (user cancel a payment explicitly)
+  * completedSuccess.php (payment completed successfully)
+  * errorSuccess.php (error when posting variables to the cgi module, just for the __Paybox System__ product)
+  * failSuccess.php (payment failed)
+  * paySuccess.php (form to enter the card information to pay, just for the __Paybox Direct__ product)
+ 
+If you want to customize one of these templates:
+
+  * Create a sfPaymentPaybox module in your application (don't use any task, just create a sfPaymentPaybox directory)
+  * Create a template with the name of the template you want to customize in the sfPaymentPaybox/templates directory
+  * symfony now renders your template instead of the default one
+
+Customize sfPaymentPaybox module actions
+----------------------------------------
+
+If you want to customize or add methods to the sfPaymentPaybox:
+
+  * Create a sfPaymentPaybox module in your application (don't use any task, just create a sfPaymentPaybox directory)
+  * Create an actions.class.php file in your actions directory that inherit from BasesfPaymentPayboxActions (don't forget to include the BasesfPaymentPayboxActions as it can't be autoloaded by symfony)
+  
+        [php]
+        <?php
+
+        require_once(sfConfig::get('sf_plugins_dir'). '/sfPaymentPaybox2Plugin/modules/sfPaymentPaybox/lib/BasesfPaymentPayboxActions.class.php');
+
+        class sfPaymentPayboxActions extends BasesfPaymentPayboxActions
+        {
+          public function executeNewAction()
+          {
+            return $this->renderText('This is a new sfPaymentPaybox action.');
+          }
+          
+          /**
+           * Transaction completed successfully
+           *
+           * @param array $response_params
+           */
+          public function transactionCompleted($response_params)
+          {
+            // do something when the transaction is completed
+            // Amount = $response_params['amount']
+            // Reference = $response_params['reference']
+            // Transaction Number = $response_params['transaction']
+          }
+          
+          /**
+           * Transaction failed
+           *
+           * @param array $response_params
+           */
+          public function transactionFailed($response_params)
+          {
+            // do something when the transaction is failed
+          }
+          
+          /**
+           * Transaction canceled (explicitly by user)
+           *
+           * @param array $response_params
+           */
+          public function transactionCanceled($response_params)
+          {
+            // do something when the transaction is canceled
+          }
+        }
+  
+How to use it
+-------------
+
+An example using sfPaymentPaybox2Plugin is available in:
+
+  * sfPaymentPaybox/sample (for __Paybox System__)
+  
+  * sfPaymentPaybox/sampleDirect (for __Paybox Direct__)
+
+Testing the plugin
+------------------
+        
+  * Test the __Paybox System__ product
+
+        http://localhost/payment_project/frontend_dev.php/sfPaymentPaybox/sample
+        
+  * Test the __Paybox Direct__ product
+
+        http://localhost/payment_project/frontend_dev.php/sfPaymentPaybox/sampleDirect
+
+**Note** : in the previous part, replace _localhost_ by your server hostname and _payment_project_ by the path to your symfony application.
+
+Testing the plugin using sfWebBrowser
+-------------------------------------
+
+  * Test configuration in  `sfPaymentPaybox2Plugin/config/test.yml`
+
+        application_url: "http://localhost/payment_project/frontend_dev.php"
+        application: "frontend"
+        
+A default (working) test configuration is provided so that you can check that the plugin behaves correctly by executing the following tests :
+
+        $ php plugins/sfPaymentPaybox2Plugin/test/unit/PaymentCompletedTest.php
+        $ php plugins/sfPaymentPaybox2Plugin/test/unit/PaymentCancelTest.php
+        $ php plugins/sfPaymentPaybox2Plugin/test/unit/PayboxDirectTest.php
+
+__Payment System (Completed Test)__ :
+
+  * connects to the sample payment page (`sfPaymentPaybox2Plugin/modules/sfPaymentPaybox/templates/sampleSuccess.php`)
+  * clicks on the payment button
+  * post the fields to the cgi module
+  * post the return encrypted fields to payment method
+  * post the return fields to payment
+  * make the transaction with a virtual card number 
+
+__Payment System (Cancel Test)__ :
+
+  * connects to the sample payment page (`sfPaymentPaybox2Plugin/modules/sfPaymentPaybox/templates/sampleSuccess.php`)
+  * clicks on the payment button
+  * post the fields to the cgi module
+  * post the return encrypted fields to payment method
+  * post the return fields to payment
+  * cancel the transaction and return to site
+  
+__Paybox Direct Test__ :
+
+  * load test configuration
+  * generate test parameters (including card holder information)
+  * validate the payment  
+  
+Feedback
+--------
+
+Please provide feedbacks, comments, support on the [symfony-payment-developers Google Group](http://groups.google.com/group/symfony-payment-developers "The symfony-payment-developers Google Group")
+
+             
+TODO
+----
+  * Improve tests
+  * Refactor, secure and update following sfPaymentPlugin modifications

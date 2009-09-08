@@ -1,0 +1,19 @@
+all:
+  #sfPaymentPaybox2Plugin
+  sf_payment_paybox_plugin: 
+    identifier: paybox_identifier         #Paybox identifier, supplied by PAYBOX SERVICES at the time of registration.
+    site: my_site_number                  #Site number (TPE) given by the bank
+    rank: rank_number                     #Rank number given by the bank
+    password: password                    #password provided by Paybox (Paybox Direct)
+    language: "GBR"                       #language (GBR English, FRA French, ESP Spanish, ITA Italian, DEU German, NLD Dutch, SWE Swedish)
+    return: "amount:M;reference:R;authorization:A;transaction:T;subsription_number:B;payment_type:P;card_type:C;error:E;payment_status:G;authenticate_status:F" #variables sent by Paybox
+    intermediary_page:                    #intermediary page is the page between your site and the paybox payment page (Paybox System)
+      wait: 0                             #delay in displaying the intermediary page, value in milliseconds
+      txt: "<center><b>You are being sent to a Paybox secure payment page</b><br>Once payment has been made, you will receive an e-mail containing your purchase receipt.<br><i>Please wait a few seconds…</i><br></center>" #text able to be displayed on the intermediary page instead of the default text
+      background: "#FFFFFF"               #screen background of the intermediary page
+      button: "nul"                       #name given to the button of the intermediary page "nul" for the removal of this button
+    test:
+      identifier: test_paybox_identifier  #Test PAYBOX identifier, supplied by PAYBOX SERVICES at the time of registration.
+      site: test_my_site_number           #Test Site number (TPE) given by the bank
+      rank: test_rank_number              #Test Rank number given by the bank
+      password: password                  #Test password provided by Paybox (Paybox Direct)
